@@ -4,6 +4,7 @@ import (
 	"github.com/michaelwp/go-get-rabbitmq/rabbitmq"
 	"github.com/robfig/cron"
 	"github.com/sirupsen/logrus"
+	"os"
 	"time"
 )
 
@@ -13,14 +14,14 @@ func ReceiveMsg() (*cron.Cron,  error) {
 		return nil, err
 	}
 
-	c := cron.NewWithLocation(loc)
-
 	rmqConfig := rabbitmq.RMQConfig{
-		Url:   "amqp://guest:guest@localhost:5672/",
+		Url:   os.Getenv("RABBITMQ_URL"),
 		Queue: "hello",
 	}
 
+	c := cron.NewWithLocation(loc)
 	err = c.AddFunc("* * * * * *", func() {
+		rmqConfig.Queue = "otp"
 		err := rmqConfig.Receive()
 		if err != nil {
 			logrus.Error(err)

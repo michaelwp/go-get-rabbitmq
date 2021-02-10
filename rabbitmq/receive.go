@@ -1,6 +1,9 @@
 package rabbitmq
 
 import (
+	"encoding/json"
+	sms2 "github.com/michaelwp/go-get-rabbitmq/sms"
+	"github.com/sirupsen/logrus"
 	"github.com/streadway/amqp"
 	"log"
 )
@@ -50,6 +53,20 @@ func (r RMQConfig) Receive() error {
 
 	go func() {
 		for d := range msgs {
+			var sms sms2.Sms
+
+			err = json.Unmarshal(d.Body, &sms)
+			if err != nil {
+				logrus.Error(err)
+			}
+
+			logrus.Info(sms)
+
+			err = sms.Send()
+			if err != nil {
+				logrus.Error(err)
+			}
+
 			log.Printf("Received a message: %s", d.Body)
 		}
 	}()
